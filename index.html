@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生命靈數｜客人好評回饋</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0d0820; --bg2:#1d1240; --gold:#e8c77a; --gold2:#f6e3b0;
+    --card:rgba(255,255,255,.07); --line:rgba(232,199,122,.35); --text:#efe9ff; --muted:#b9add8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Noto Sans TC",sans-serif;color:var(--text);
+    background:radial-gradient(ellipse at 50% 20%,#2d1b63 0%,var(--bg2) 35%,var(--bg1) 80%);
+    min-height:100vh;overflow-x:hidden;
+  }
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+  main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:56px 16px 40px}
+
+  header{text-align:center;max-width:640px}
+  .eyebrow{font-family:"Cinzel",serif;letter-spacing:.35em;color:var(--gold);font-size:13px}
+  h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:clamp(28px,5vw,44px);margin:12px 0 10px;
+     background:linear-gradient(180deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:15px;line-height:1.8}
+  .summary{display:flex;gap:28px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+  .summary div{text-align:center}
+  .summary b{display:block;font-family:"Cinzel","Noto Serif TC",serif;font-size:clamp(20px,5vw,28px);color:var(--gold2)}
+  .summary span{font-size:12px;color:var(--muted);letter-spacing:.1em}
+
+  /* ===== 3D 環形輪播 ===== */
+  .stage{position:relative;width:100%;max-width:1100px;height:480px;margin-top:30px;
+         perspective:1400px;perspective-origin:50% 40%;touch-action:pan-y;user-select:none;cursor:grab}
+  .stage:active{cursor:grabbing}
+  .ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;
+        transition:transform .9s cubic-bezier(.22,.8,.26,1)}
+  .ring.dragging{transition:none}
+  .slot{position:absolute;left:calc(var(--w) / -2);top:-185px;width:var(--w);height:370px;transform-style:preserve-3d;
+        transition:opacity .6s, filter .6s}
+  .card{
+    width:100%;height:100%;border-radius:22px;padding:26px 22px;
+    background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+    border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 20px 50px rgba(0,0,0,.45), inset 0 0 30px rgba(232,199,122,.06);
+    display:flex;flex-direction:column;align-items:center;text-align:center;
+    animation:float 5s ease-in-out infinite;animation-delay:var(--d);
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  }
+  .slot.front .card{border-color:var(--gold);box-shadow:0 24px 70px rgba(0,0,0,.5),0 0 40px rgba(232,199,122,.25)}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+
+  .num{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;
+       font-family:"Cinzel",serif;font-size:28px;font-weight:700;color:#2a1a4a;
+       background:radial-gradient(circle at 35% 30%,#fff6d8,var(--gold) 60%,#b48a3c);
+       box-shadow:0 0 0 4px rgba(232,199,122,.18),0 0 24px rgba(232,199,122,.45)}
+  .numlabel{font-size:12px;color:var(--gold);letter-spacing:.15em;margin:8px 0 10px}
+  .num.blank{font-size:24px}
+  .src{margin:10px 0 4px;font-size:11px;letter-spacing:.12em;color:var(--gold2);border:1px solid var(--line);padding:3px 10px;border-radius:999px}
+  .ctx{font-size:12px;color:var(--muted);margin-top:6px}
+  .more{font-size:12px;color:var(--gold);margin-top:6px;opacity:0;transition:.3s}
+  .slot.front .more{opacity:.9}
+  .slot.front{cursor:pointer}
+  .modal{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(8,4,20,.7);backdrop-filter:blur(6px);padding:20px}
+  .modal.open{display:grid}
+  .mbox{max-width:460px;width:100%;max-height:85vh;overflow:auto;border-radius:22px;padding:30px 26px;text-align:center;
+        background:linear-gradient(160deg,#2a1d55,#170f33);border:1px solid var(--gold);box-shadow:0 0 50px rgba(232,199,122,.25);position:relative}
+  .mbox .num{margin:0 auto}
+  .mbox .mtext{font-family:"Noto Serif TC",serif;font-size:16px;line-height:1.95;margin:16px 0;text-align:center}
+  .mbox .mtext p+p{margin-top:2px}
+  .close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+  .quote{font-family:"Noto Serif TC",serif;font-size:15px;line-height:1.85;color:var(--text);
+         flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;position:relative;padding-top:6px}
+  .quote::before{content:"“";font-family:"Cinzel",serif;color:var(--gold);font-size:34px;line-height:0;vertical-align:-14px;margin-right:2px;opacity:.8}
+  .who{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);width:100%}
+  .who b{font-weight:500;font-size:15px}
+  .who span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+
+  .nav{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:56px;height:56px;border-radius:50%;
+       border:1px solid var(--gold);background:rgba(20,12,45,.65);color:var(--gold2);font-size:22px;cursor:pointer;
+       display:grid;place-items:center;backdrop-filter:blur(6px);transition:.25s}
+  .nav:hover{background:var(--gold);color:#22143f;box-shadow:0 0 24px rgba(232,199,122,.6)}
+  .nav:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+  .prev{left:12px}.next{right:12px}
+
+  .dots{display:flex;gap:10px;margin-top:6px;z-index:2}
+  .dots button{width:9px;height:9px;border-radius:50%;border:none;background:rgba(232,199,122,.3);cursor:pointer;transition:.3s;padding:0}
+  .dots button.on{background:var(--gold);width:26px;border-radius:6px}
+
+  .controls{margin-top:16px;display:flex;gap:12px;align-items:center;z-index:2}
+  .pill{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px;font-family:inherit}
+  .pill:hover{color:var(--gold2);border-color:var(--gold)}
+
+  .note{margin-top:28px;font-size:12px;color:var(--muted);opacity:.75;text-align:center;max-width:520px;line-height:1.7}
+
+  @media (max-width:640px){
+    main{padding-top:40px}
+    .stage{height:470px;perspective:1000px}
+    .slot{top:-185px;height:370px}
+    .card{padding:22px 18px}
+    .quote{font-size:14px;line-height:1.75;-webkit-line-clamp:5;flex:0 1 auto;margin-bottom:auto}
+    .nav{width:46px;height:46px;font-size:18px;top:auto;bottom:-6px;transform:none}
+    .prev{left:calc(50% - 64px)}.next{right:calc(50% - 64px)}
+    .dots{margin-top:56px}
+  }
+  @media (prefers-reduced-motion:reduce){.card{animation:none}.ring{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<main>
+  <header>
+    <div class="eyebrow">LIFE PATH NUMBER</div>
+    <h1>來自客人的真心回饋</h1>
+    <p class="sub">每一個數字，都藏著一段屬於你的故事。<br>謝謝每一位願意分享解析心得的你。—— 小C老師</p>
+    <div class="summary">
+            <div><b id="count">0</b><span>則真實回饋</span></div>
+      <div><b>LINE・IG・面占感想</b><span>真實回饋整理</span></div>
+    </div>
+  </header>
+
+  <section class="stage" id="stage" aria-roledescription="carousel" aria-label="客人好評輪播">
+    <button class="nav prev" id="prev" aria-label="上一則">&#10094;</button>
+    <div class="ring" id="ring"></div>
+    <button class="nav next" id="next" aria-label="下一則">&#10095;</button>
+  </section>
+
+  <div class="dots" id="dots"></div>
+  <div class="controls">
+    <button class="pill" id="auto">⏸ 暫停自動旋轉</button>
+  </div>
+
+  <p class="note">回饋內容整理自客人的 LINE／IG 私訊與面占感想，已隱去個人資訊。</p>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="mbox"><button class="close" id="close" aria-label="關閉">×</button><div id="mbody"></div></div>
+</div>
+<script>
+/* ============================================
+   ✏️ 在這裡修改評價內容
+   num：客人的生命靈數（1–9 或 11/22/33）
+   ============================================ */
+const REVIEWS = [
+  { num:7, who:"28歲・UIUX工程師（男）",
+    text:"我聽完的感想是\n有講到我的問題重點\n因為我自己目前其實已經發現\n有想辦法再改的問題\n如果再早幾年從生命靈數去\n讓我知道會更好 A_A" },
+  { num:8, who:"26歲・餐飲業（男）",
+    text:"你分析的很精闢\n我對象真的是個工作狂\n忙起來見不著人的那種\n有時候真的不懂\n她為什麼要那麼認真到某個地步\n原來是對金錢沒安全感...." },
+  { num:9, who:"31歲・保險業務（女）",
+    text:"我一直都知道我是9號人，卻不曉得還有其它更細緻的分析，很像在解釋每個不同成分的自己，有優點也有缺點……還有連線什麼的，分析的很到位。\n居然還有流年的分析，有建議可以做什麼的改變或是發展方向的參考，太厲害了！" },
+  { num:9, who:"26歲・天秤座（男）",
+    text:"我覺得命盤真的是很神奇的東西，經過小C老師的解析，真的挺準！我有時候很自相矛盾，一方面覺得人定勝天，一方面又感覺冥冥之中有定數，看完解析真的久違的，有被了解到。" },
+  { num:5, who:"43歲・企業主管（男）",
+    text:"講的很棒 聽到很多我沒聽過的東西\n因為我自己原本也會算 講準到我有嚇到\n聽完我的部分後續是想買水晶的 哈~\n也沒想過自己會想拿對象的命盤來看\n到底對方跟我合不合~~" },
+  { num:8, who:"30歲・行政人員（女）",
+    text:"沒錯 我就是那個會去督促別人\n不可以浪費東西的人!\n我同事都覺得我很難搞哈哈\n像我就都堅持用環保餐具..." },
+  { num:6, who:"35歲・工程師（男）",
+    text:"流年有準喔，明年皮皮剉\n沒想過自己會來算這個\n以前都是找老師算塔羅比較多\n而且我還喜歡一直找不同的老師算\n很開心認識小C老師 很有耐心再敘述\n收費完還是可以稍微問相關問題\n完全不雷!推推" },
+  { num:2, who:"22歲・公職人員（女）",
+    text:"不愛吵架 但就是喜歡大家都好好的\n經常要聽同事抱怨事情真的很煩\n但又沒辦法不去聽\n生命靈數真的是很神奇的東西\n先前我只有聽過紫微斗數\n推薦大家 來找小C算九宮格 真的會覺得很準" },
+  { num:7, who:"26歲・科技作業員（女）",
+    text:"對很多事情保持好奇心\n但我的死個性就是學完就不繼續學了\n真的是我的缺點跟死穴\n聽小C說完 雖然確實覺得自己沒有很幸運\n但有些時候我確實都是順順的就過了\n也是很莫名其妙就活著\n想自己創業的心被小C看穿 真的瞬間很赤裸\n但終於有人相信我想自己拚事業" },
+  { num:3, who:"42歲・保經主管（女）",
+    text:"我本身就是不太喜歡自己獨處\n就是喜歡熱鬧的地方\n也喜歡大家一起做事情 彼此信任\n有笑聲 這樣才是一個好的工作環境\n我對工作要求度是對自己真的很嚴苛\n誰叫我是務實的摩羯座呢~~" }
+];
+
+const ring = document.getElementById('ring');
+const stage = document.getElementById('stage');
+const dotsEl = document.getElementById('dots');
+const N = REVIEWS.length;
+const STEP = 360 / N;
+let index = 0, rot = 0, radius = 0, autoOn = true, timer;
+
+document.getElementById('count').textContent = N + '+';
+
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+REVIEWS.forEach((r,i)=>{
+  const slot = document.createElement('div');
+  slot.className = 'slot';
+  const hasNum = r.num !== "" && r.num != null;
+  const paras = String(r.text).split('\n').map(esc).join('<br>');
+  slot.innerHTML = `
+    <article class="card" style="--d:${(-i*0.6).toFixed(1)}s">
+      <div class="num${hasNum?'':' blank'}">${hasNum ? esc(r.num) : '✦'}</div>
+      <div class="numlabel">${hasNum ? `生命靈數 ${esc(r.num)} 號人` : '生命靈數'}</div>
+      <p class="quote">${paras}</p>
+      <div class="more">點我看完整回饋 ›</div>
+      <div class="who"><b>${esc(r.who)}</b></div>
+    </article>`;
+  slot.addEventListener('click', ()=>{ if(moved) return; if(i===index) openModal(i); else { goTo(i); restartAuto(); } });
+  ring.appendChild(slot);
+
+  const d = document.createElement('button');
+  d.setAttribute('aria-label', `第 ${i+1} 則`);
+  d.onclick = ()=>{ goTo(i); restartAuto(); };
+  dotsEl.appendChild(d);
+});
+const slots = [...ring.children];
+const dots = [...dotsEl.children];
+
+function layout(){
+  const vw = Math.min(window.innerWidth, 1100);
+  const w = vw < 640 ? Math.min(250, vw*0.68) : 270;
+  document.documentElement.style.setProperty('--w', w + 'px');
+  radius = Math.round((w/2) / Math.tan(Math.PI / N) + (vw<640 ? 30 : 70));
+  slots.forEach((s,i)=> s.style.transform = `rotateY(${i*STEP}deg) translateZ(${radius}px)`);
+  apply();
+}
+
+function apply(){
+  ring.style.transform = `translateZ(${-radius}px) rotateY(${rot}deg)`;
+  slots.forEach((s,i)=>{
+    let a = ((i*STEP + rot) % 360 + 360) % 360;
+    if (a > 180) a = 360 - a;            // 0 = 正前方
+    const t = a / 180;
+    s.style.opacity = a > 100 ? 0 : (1 - t*0.9).toFixed(2);
+    s.style.pointerEvents = a > 100 ? 'none' : 'auto';
+    s.style.filter = `brightness(${(1 - t*0.5).toFixed(2)}) blur(${(t*2).toFixed(1)}px)`;
+    s.classList.toggle('front', a < STEP/2);
+  });
+  dots.forEach((d,i)=> d.classList.toggle('on', i === index));
+}
+
+function goTo(i){
+  // 走最短路徑
+  let diff = ((i - index) % N + N) % N;
+  if (diff > N/2) diff -= N;
+  index = (i % N + N) % N;
+  rot -= diff * STEP;
+  apply();
+}
+const next = ()=> goTo(index + 1);
+const prev = ()=> goTo(index - 1);
+
+document.getElementById('next').onclick = e => { e.stopPropagation(); next(); restartAuto(); };
+document.getElementById('prev').onclick = e => { e.stopPropagation(); prev(); restartAuto(); };
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') { next(); restartAuto(); }
+  if (e.key === 'ArrowLeft')  { prev(); restartAuto(); }
+});
+
+/* 拖曳 / 滑動 */
+let startX = 0, startRot = 0, dragging = false, moved = false;
+stage.addEventListener('pointerdown', e => {
+  if (e.target.closest('.nav')) return;
+  dragging = true; moved = false; startX = e.clientX; startRot = rot;
+  ring.classList.add('dragging'); stopAuto();
+});
+window.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - startX;
+  if (Math.abs(dx) > 5) moved = true;
+  rot = startRot + dx * 0.25;
+  apply();
+});
+window.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false; ring.classList.remove('dragging');
+  const nearest = Math.round(-rot / STEP);
+  rot = -nearest * STEP;
+  index = ((nearest % N) + N) % N;
+  apply(); restartAuto();
+  setTimeout(()=> moved = false, 0);
+});
+
+/* 自動旋轉 */
+const autoBtn = document.getElementById('auto');
+function startAuto(){ stopAuto(); if (autoOn) timer = setInterval(next, 4000); }
+function stopAuto(){ clearInterval(timer); }
+function restartAuto(){ startAuto(); }
+autoBtn.onclick = () => {
+  autoOn = !autoOn;
+  autoBtn.textContent = autoOn ? '⏸ 暫停自動旋轉' : '▶ 開始自動旋轉';
+  startAuto();
+};
+stage.addEventListener('mouseenter', stopAuto);
+stage.addEventListener('mouseleave', () => { if (!dragging) startAuto(); });
+
+window.addEventListener('resize', layout);
+const modal = document.getElementById('modal'), mbody = document.getElementById('mbody');
+function openModal(i){
+  const r = REVIEWS[i], hasNum = r.num !== "" && r.num != null;
+  mbody.innerHTML = `<div class="num${hasNum?'':' blank'}">${hasNum?esc(r.num):'✦'}</div>
+    <div class="numlabel">${hasNum?`生命靈數 ${esc(r.num)} 號人`:'生命靈數'}</div>
+    <div class="mtext">${String(r.text).split('\n').map(t=>`<p>${esc(t)}</p>`).join('')}</div>
+    <div class="who"><b>${esc(r.who)}</b></div>`;
+  modal.classList.add('open'); stopAuto();
+}
+function closeModal(){ modal.classList.remove('open'); startAuto(); }
+document.getElementById('close').onclick = closeModal;
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+layout(); startAuto();
+
+/* 星空背景 */
+const cv = document.getElementById('stars'), cx = cv.getContext('2d');
+let stars = [];
+function initStars(){
+  cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio;
+  cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  stars = Array.from({length: Math.floor(innerWidth*innerHeight/5000)}, ()=>({
+    x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+    r: Math.random()*1.4 + .2, p: Math.random()*Math.PI*2, s: Math.random()*.02 + .005
+  }));
+}
+function draw(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  for (const s of stars){
+    s.p += s.s;
+    cx.globalAlpha = .35 + Math.sin(s.p)*.35 + .3;
+    cx.fillStyle = s.r > 1.2 ? '#f6e3b0' : '#ffffff';
+    cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, Math.PI*2); cx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+initStars(); draw();
+window.addEventListener('resize', initStars);
+</script>
+</body>
+</html>
